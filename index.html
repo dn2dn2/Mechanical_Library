@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tra cứu file trong Drive</title>
+<script src="https://cdn.jsdelivr.net/npm/fuse.js@6.6.2"></script>
+<style>
+    body { font-family: Arial, sans-serif; background: #f3f4f6; margin: 0; padding: 40px; display: flex; justify-content: center; align-items: flex-start; }
+    .container { width: 100%; max-width: 600px; background: white; padding: 30px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); }
+    h2 { text-align: center; margin-bottom: 25px; font-weight: 600; }
+    .search-box { display: flex; gap: 10px; }
+    input { flex: 1; padding: 12px; font-size: 16px; border-radius: 8px; border: 1px solid #ccc; }
+    button { padding: 12px 20px; font-size: 16px; background: #2563eb; color: white; border: none; border-radius: 8px; cursor: pointer; transition: 0.2s; }
+    button:disabled { background: #9ca3af; cursor: not-allowed; }
+    button:hover:not(:disabled) { background: #1d4ed8; }
+    #result { margin-top: 25px; }
+    .item { padding: 12px; border-bottom: 1px solid #e5e7eb; }
+    .item a { text-decoration: none; color: #2563eb; font-weight: 600; }
+</style>
+</head>
+<body>
+<div class="container">
+    <h2>Tra cứu thư viện thiết bị theo Tên / Mã</h2>
+    <div class="search-box">
+        <input id="searchInput" type="text" placeholder="Nhập mã hàng...">
+        <button id="btnSearch" onclick="search()" disabled>Tìm</button>
+    </div>
+    <div id="result"></div>
+</div>
+
+<script>
+let fileList = [];
+let fuse;
+
+async function init() {
+    const btn = document.getElementById("btnSearch");
+    btn.disabled = true;
+
+    try {
+        const res = await fetch("https://script.google.com/macros/s/AKfycbxHAyW5FjRwQoA518HMwimWkhBiaNfZo9GMH8MIpBcYImYhYVJLBuDldZkMWPXa0HonqQ/exec");
+        const data = await res.json();
+
+        fileList = data;
+        fuse = new Fuse(fileList, { keys: ["name"], threshold: 0.3 });
+
+        btn.disabled = false;
+        console.log("✅ Dữ liệu đã tải xong");
+    } catch (err) {
+        alert("Không tải được dữ liệu từ Google Apps Script.");
+        console.error(err);
+    }
+}
+
+init();
+
+function search() {
+    const keyword = document.getElementById("searchInput").value.trim();
+    const result = fuse.search(keyword);
+
+    const box = document.getElementById("result");
+    box.innerHTML = result.length
+        ? result.map(r => `<div class='item'><a href='${r.item.url}' target='_blank'>${r.item.name}</a></div>`).join("")
+        : "<p style='color:red;'>Không tìm thấy</p>";
+}
+</script>
+</body>
+</html>
